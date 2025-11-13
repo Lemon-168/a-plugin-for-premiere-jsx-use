@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8">
+    <title>脚本运行器</title>
+    <script src="CSInterface.js"></script>
+    <style>
+        /* ---------- 基础布局 ---------- */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            color: #f5f5f5;
+            background-color: #333;
+            overflow: hidden; /* 禁止 body 滚动 */
+            padding: 10px;
+            font-size: 12px;
+            height: 100vh; /* 占满视口 */
+            box-sizing: border-box;
+        }
+        /* ---------- 内容区（带内部滚动条） ---------- */
+        #contents {
+            width: 100%;
+            margin: 15px auto 0;
+            max-height: calc(100vh - 80px); /* 预留标题、路径、间距等高度 */
+            overflow-y: auto; /* 仅此区域滚动 */
+            padding: 0 8px; /* 左右留点边距 */
+            box-sizing: border-box;
+        }
+        /* ---------- 按钮样式 ---------- */
+        .btn {
+            width: 220px;
+            height: 22px;
+            background-color: #ffffff;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            margin: 0 auto 5px auto; /* 底部间距 5px，水平居中 */
+            display: block;
+            font-size: 11px;
+            transition: background-color 0.1s;
+        }
+        .btn:hover {
+            background-color: #00ffe4;
+        }
+        .btn:last-child {
+            margin-bottom: 0; /* 最后一个按钮不留底距 */
+        }
+        /* ---------- 信息文字 ---------- */
+        .info {
+            color: #00ffde;
+            font-size: 11px;
+            margin: 8px 0;
+            word-break: break-all;
+            line-height: 1.4;
+        }
+        /* ---------- 美化滚动条（WebKit） ---------- */
+        #contents::-webkit-scrollbar {
+            width: 14px;
+            height: 14px; /* 同时设置横向滚动条高度 */
+        }
+        #contents::-webkit-scrollbar-track {
+            background: #444;
+            border-radius: 4px;
+        }
+        #contents::-webkit-scrollbar-thumb {
+            background: #666;
+            border-radius: 4px;
+        }
+        #contents::-webkit-scrollbar-thumb:hover {
+            background: #00ffe4;
+        }
+        /* 修复滚动条交叉点（角）白色问题 */
+        #contents::-webkit-scrollbar-corner {
+            background: #444; /* 与 track 一致 */
+        }
+    </style>
+</head>
+<body>
+    <div id="contents"></div>
+    <div class="info">
+        脚本目录：<span id="path">加载中...</span>
+    </div>
+    <script>
+        'use strict';
+        var cs = new CSInterface();
+        var SCRIPT_ROOT = "./jsx";
+        function getRootPath() {
+            var extPath = cs.getSystemPath(SystemPath.EXTENSION);
+            var jsxPath = extPath + '/jsx';
+            return jsxPath;
+        }
+        function scanJSX(cb) {
+            var root = getRootPath();
+            document.getElementById('path').textContent = root;
+            var script = `
+                (function(){
+                    var f = new Folder("${root.replace(/\\/g, '\\\\')}");
+                    var result = [];
+                    if (!f.exists) return "ERROR";
+                    function walk(folder) {
+                        var items = folder.getFiles();
+                        for (var i = 0; i < items.length; i++) {
+                            var item = items[i];
+                            if (item instanceof Folder) {
+                                walk(item);
+                            } else if (item.name.match(/\\.jsx$/i)) {
+                                result.push(decodeURI(item.fsName));
+                            }
+                        }
+                    }
+                    walk(f);
+                    return result.join("|");
+                })();`;
+            cs.evalScript(script, cb);
+        }
+        function createButtons(result) {
+            var container = document.getElementById('contents');
+            container.innerHTML = '';
+            if (!result || result === "ERROR") {
+                container.innerHTML = '<p style="color:#f66;">未找到 .jsx 脚本<br>请放入 ./jsx 文件夹</p>';
+                return;
+            }
+            var scriptPaths = result.split('|').filter(Boolean);
+            scriptPaths.forEach(function(fullPath) {
+                var fileName = fullPath.split(/[\\/]/).pop();
+                var displayName = fileName.replace(/\.jsx$/i, '');
+                var btn = document.createElement('input');
+                btn.type = 'button';
+                btn.className = 'btn';
+                btn.value = displayName;
+                btn.onclick = function () {
+                    var exec = 'try{ $.evalFile("' + fullPath.replace(/\\/g, '\\\\') + '"); }catch(e){alert("错误: " + e);}';
+                    cs.evalScript(exec);
+                };
+                container.appendChild(btn);
+            });
+        }
+        window.onload = function () {
+            scanJSX(function(res) {
+                createButtons(res);
+            });
+        };
+    </script>
+</body>
+</html>
