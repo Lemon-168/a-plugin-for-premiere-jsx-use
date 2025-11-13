@@ -1,7 +1,15 @@
+# CEP for PR-jsx
+一个基于 CEP 的 Adobe Premiere Pro 插件，用于快速加载并运行自定义 JSX 脚本。
+---
+## 插件展示
+![插件展示](CEP%20for%20PR-jsx/插件展示.png)
+---
+## 教程 / Tutorial
+
 - [中文](#%E4%B8%AD%E6%96%87) | [English](#english)
 
-<details id="中文">
-<summary><strong>中文教程（点击展开）</strong></summary>
+<details id="中文" open>
+<summary><strong>中文教程（默认展开）</strong></summary>
 
 ### 安装与使用说明
 1. 使用前，请先运行 `Add Keys.reg`
@@ -11,11 +19,11 @@
 </details>
 
 <details id="english">
-<summary><strong>English Tutorial (Click to expand)</strong></summary>
+<summary><strong>English Tutorial</strong></summary>
 
 ### Installation & Usage
 1. Before using, please run `Add Keys.reg` first.
-2. Place your scripts in the `jsx` folder. The plugin supports nested folders, such as `./jsx/切割` and `./jsx/杂项`.
+2. Place your scripts in the `jsx` folder. Nested folders are supported, e.g., `./jsx/切割` and `./jsx/杂项`.
 3. Click the button to run the script.
 
 </details>
